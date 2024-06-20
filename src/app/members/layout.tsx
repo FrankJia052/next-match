@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 
-export default function layout() {
+export default function layout({children}:{children: ReactNode}) {
   return (
-    <div className='bg-green-600 h-screen'>
-        <h1 className='text-2xl'>app/members/layout.tsx</h1>
+    <div className='ddbg-green-600 hdd-screen'>
+        {children}
     </div>
   )
 }
