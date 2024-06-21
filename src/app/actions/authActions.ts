@@ -1,5 +1,5 @@
 'use server';
-import { signIn, signOut } from "@/auth";
+import { auth, signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { LoginSchema } from "@/lib/schemas/loginSchema";
 import { RegisterSchema, registerSchema } from "@/lib/schemas/registerSchema";
@@ -85,4 +85,11 @@ export async function getUserById(id: string) {
     return prisma.user.findUnique({
         where: { id }
     })
+}
+
+export async function getAuthUserId() {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Unauthorised')
+    return userId
 }

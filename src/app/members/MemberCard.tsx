@@ -1,3 +1,5 @@
+'use client'
+import LikeButton from '@/components/LikeButton'
 import { calculateAge } from '@/lib/util'
 import { Card, CardFooter, Image } from '@nextui-org/react'
 import { Member } from '@prisma/client'
@@ -5,30 +7,43 @@ import Link from 'next/link'
 import React from 'react'
 
 type Props = {
-    member: Member
+    member: Member,
+    likeIds: string[]
 }
 
-export default function MemberCard({member}: Props) {
-  return (
-    <Card 
-        fullWidth
-        as={Link}
-        href={`/members/${member.userId}`}
-        isPressable
-    >
-        <Image 
-            isZoomed
-            alt={member.name}
-            width={300}
-            src={member.image || '/images/user.png'}
-            className='aspect-square object-cover'
-        />
-        <CardFooter className='flex justify-start overflow-hidden absolute bottom-0 z-10 bg-dark-gradient'>
-            <div className='flex flex-col text-white'>
-                <span className='font-semibold'>{member.name}, {calculateAge(member.dateOfBirth)}</span>
-                <span className='text-sm'>{member.city}</span>
+export default function MemberCard({ member, likeIds }: Props) {
+    const hasLiked = likeIds.includes(member.userId)
+
+    // 注意如何避免点击Like后激活外层Card的点击，错误的进入了user profile
+    const preventLinkAction = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    return (
+        <Card
+            fullWidth
+            as={Link}
+            href={`/members/${member.userId}`}
+            isPressable
+        >
+            <Image
+                isZoomed
+                alt={member.name}
+                width={300}
+                src={member.image || '/images/user.png'}
+                className='aspect-square object-cover'
+            />
+            <div onClick={preventLinkAction}>
+                <div className='absolute top-3 right-3 z-50'>
+                    <LikeButton targetId={member.userId} hasLiked={hasLiked} />
+                </div>
             </div>
-        </CardFooter>
-    </Card>
-  )
+            <CardFooter className='flex justify-start overflow-hidden absolute bottom-0 z-10 bg-dark-gradient'>
+                <div className='flex flex-col text-white'>
+                    <span className='font-semibold'>{member.name}, {calculateAge(member.dateOfBirth)}</span>
+                    <span className='text-sm'>{member.city}</span>
+                </div>
+            </CardFooter>
+        </Card>
+    )
 }

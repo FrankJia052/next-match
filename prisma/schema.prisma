@@ -61,6 +61,8 @@ model Member {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   // one-to-many relationship with Photo
   photos      Photo[]
+  sourceLikes Like[]   @relation("source")
+  targetLikes Like[]   @relation("target")
 }
 
 model Photo {
@@ -71,4 +73,16 @@ model Photo {
   // many-to-one relationship with Member
   memberId String
   member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+// 多对多的关系
+model Like {
+  sourceUserId String
+  sourceMember Member @relation("source", fields: [sourceUserId], references: [userId], onDelete: Cascade)
+
+  targetUserId String
+  targetMember Member @relation("target", fields: [targetUserId], references: [userId], onDelete: Cascade)
+
+  // 两个id同时作为这个表格的primary key
+  @@id([sourceUserId, targetUserId])
 }
