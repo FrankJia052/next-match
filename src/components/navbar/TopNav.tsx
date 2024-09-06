@@ -5,9 +5,12 @@ import { GiMatchTip } from 'react-icons/gi'
 import NavLink from './NavLink'
 import { auth } from '@/auth'
 import UserMenu from './UserMenu'
+import { getUserInfoForNav } from '@/app/actions/userActions'
 
 export default async function TopNav() {
-    const session = await auth()
+    const session = await auth();
+    // 重点：拿到最新的user info
+    const userInfo = session?.user && await getUserInfoForNav()
     return (
         <Navbar
             maxWidth='xl'
@@ -36,7 +39,8 @@ export default async function TopNav() {
             <NavbarContent justify='end'>
                 {
                     session?.user ? (
-                        <UserMenu user={session.user} />
+                        // 重点：把session.user改成userInfo
+                        <UserMenu userInfo={userInfo} />
                     ) : (
                         <Fragment>
                             <Button as={Link} href="/login" variant='bordered' className='text-white'>login</Button>

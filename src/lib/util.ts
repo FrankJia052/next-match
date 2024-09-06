@@ -20,3 +20,16 @@ export function handleFormServerErrors<TFieldValues extends FieldValues> (
         setError('root.serverError', {message: errorResponse.error})
     }
 }
+
+// 把cloudinary的url改成智能调节过的，找人脸那种
+export function transformImageUrl(imageUrl?: string | null) {
+    if(!imageUrl) return null;
+
+    if(!imageUrl.includes('cloudinary')) return imageUrl;
+
+    const uploadIndex = imageUrl.indexOf('/upload/') + '/upload/'.length
+    // 注意不要少了最后的符号/
+    const transformation = 'c_fill,w_300,h_300,g_faces/';
+
+    return `${imageUrl.slice(0, uploadIndex)}${transformation}${imageUrl.slice(uploadIndex)}`
+}

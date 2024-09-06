@@ -20,6 +20,8 @@ export default function MemberImage({photo}:Props) {
                 crop='fill'
                 gravity='faces'
                 className='rounded-2xl'
+                // 添加以避免warning
+                priority
             />
         ) : (
             <Image 

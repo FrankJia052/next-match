@@ -35,7 +35,9 @@ export default function EditForm({ member }: Props) {
     }, [member, reset])
 
     const onSubmit = async (data: MemberEditSchema) => {
-        const result = await updateMemberProfile(data);
+        // 重点：更新姓名
+        const nameUpdated = data.name !== member.name;
+        const result = await updateMemberProfile(data, nameUpdated);
         if (result.status === 'success') {
             toast.success("Profile updated")
             router.refresh();

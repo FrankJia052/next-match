@@ -1,6 +1,6 @@
 'use client'
 import LikeButton from '@/components/LikeButton'
-import { calculateAge } from '@/lib/util'
+import { calculateAge, transformImageUrl } from '@/lib/util'
 import { Card, CardFooter, Image } from '@nextui-org/react'
 import { Member } from '@prisma/client'
 import Link from 'next/link'
@@ -14,7 +14,6 @@ type Props = {
 export default function MemberCard({ member, likeIds }: Props) {
     const hasLiked = likeIds.includes(member.userId)
 
-    // 注意如何避免点击Like后激活外层Card的点击，错误的进入了user profile
     const preventLinkAction = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -30,7 +29,8 @@ export default function MemberCard({ member, likeIds }: Props) {
                 isZoomed
                 alt={member.name}
                 width={300}
-                src={member.image || '/images/user.png'}
+                // 添加处理cloudinary的url的方法
+                src={transformImageUrl(member.image) || '/images/user.png'}
                 className='aspect-square object-cover'
             />
             <div onClick={preventLinkAction}>

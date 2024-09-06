@@ -1,5 +1,5 @@
 'use client'
-import { calculateAge } from '@/lib/util'
+import { calculateAge, transformImageUrl } from '@/lib/util'
 import { Button, Card, CardBody, CardFooter, Divider, Image } from '@nextui-org/react'
 import { Member } from '@prisma/client'
 import Link from 'next/link'
@@ -8,7 +8,7 @@ import React from 'react'
 
 type Props = {
     member: Member,
-    navLinks: {name: string, href: string}[]
+    navLinks: { name: string, href: string }[]
 }
 
 export default function MemberSidebar({ member, navLinks }: Props) {
@@ -19,7 +19,8 @@ export default function MemberSidebar({ member, navLinks }: Props) {
             <Image
                 height={200}
                 width={200}
-                src={member.image || '/images/user.png'}
+                // 添加处理cloudinary的url的方法
+                src={transformImageUrl(member.image) || '/images/user.png'}
                 alt='User profile image'
                 className='rounded-full mt-6 aspect-square object-cover'
             />
