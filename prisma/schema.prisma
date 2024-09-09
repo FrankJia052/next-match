@@ -46,23 +46,24 @@ model User {
 }
 
 model Member {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  name        String
-  gender      String
-  dateOfBirth DateTime
-  created     DateTime @default(now())
-  updated     DateTime @default(now())
-  description String
-  city        String
-  country     String
-  image       String?
-  // one-to-one relationship with User
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // one-to-many relationship with Photo
-  photos      Photo[]
-  sourceLikes Like[]   @relation("source")
-  targetLikes Like[]   @relation("target")
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  name              String
+  gender            String
+  dateOfBirth       DateTime
+  created           DateTime  @default(now())
+  updated           DateTime  @default(now())
+  description       String
+  city              String
+  country           String
+  image             String?
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos            Photo[]
+  sourceLikes       Like[]    @relation("source")
+  targetLikes       Like[]    @relation("target")
+  // 在member里添加消息记录
+  senderMessages    Message[] @relation("sender")
+  recipientMessages Message[] @relation("recipient")
 }
 
 model Photo {
@@ -85,4 +86,21 @@ model Like {
 
   // 两个id同时作为这个表格的primary key
   @@id([sourceUserId, targetUserId])
+}
+
+// 多对多关系传递消息，一个member可以给另一个member发送多条消息
+model Message {
+  id               String    @id @default(cuid())
+  text             String
+  created          DateTime  @default(now())
+  senderId         String?
+  recipientId      String?
+  // onDelete这里设置成，当member删除的时候，recipient里的消息不会删除
+  // 当onDelete设置成 SetNull，fields里的内容不能是required, 必须是optional:senderId, recipientId, sender, recipient
+  sender           Member?   @relation("sender", fields: [senderId], references: [userId], onDelete: SetNull)
+  recipient        Member?   @relation("recipient", fields: [recipientId], references: [userId], onDelete: SetNull)
+  // 都信息的时间记录
+  dateRead         DateTime?
+  senderDeleted    Boolean   @default(false)
+  recipientDeleted Boolean   @default(false)
 }
