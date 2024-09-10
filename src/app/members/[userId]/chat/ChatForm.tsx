@@ -5,20 +5,23 @@ import { handleFormServerErrors } from '@/lib/util'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input } from '@nextui-org/react'
 import { useParams, useRouter } from 'next/navigation'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { HiPaperAirplane } from 'react-icons/hi2'
 
 export default function ChatForm() {
-    // 添加钩子
     const router = useRouter();
-    // 用钩子，准备拿 user id, 必须和文件夹[userId]里的名称相同
     const params = useParams<{ userId: string }>();
-    const { register, handleSubmit, reset, setError, formState: { isSubmitting, isValid, errors } } = useForm<MessageSchema>({
-        resolver: zodResolver(messageSchema)
-    })
+    const { register, handleSubmit, reset, setError, setFocus,
+        formState: { isSubmitting, isValid, errors } } = useForm<MessageSchema>({
+            resolver: zodResolver(messageSchema)
+        })
 
-    // 更新onSubmit方法
+    // 添加消息框默认焦点
+    useEffect(() => {
+        setFocus('text')
+    }, [setFocus])
+
     const onSubmit = async (data: MessageSchema) => {
         const result = await createMessage(params.userId, data);
         if (result.status === 'error') {
@@ -26,6 +29,11 @@ export default function ChatForm() {
         } else {
             reset();
             router.refresh();
+            // 这里的方法都是异步，需要确保焦点方法最后触发
+            setTimeout(() => {
+                // 发消息后，不失去输入框焦点
+                setFocus('text')
+            }, 50)
         }
     }
 
@@ -56,7 +64,6 @@ export default function ChatForm() {
                     <HiPaperAirplane size={18} />
                 </Button>
             </div>
-            {/* 渲染错误信息 */}
             <div
                 className='flex flex-col'
             >
