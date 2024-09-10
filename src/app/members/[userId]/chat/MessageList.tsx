@@ -22,7 +22,7 @@ export default function MessageList({ initialMessages, currentUserId, chatId }: 
             channel.unsubscribe();
             channel.unbind('message:new');
         }
-    }, [])
+    }, [chatId])
     return (
         <div>
             {messages.length === 0 ? 'No messages to display' : (
