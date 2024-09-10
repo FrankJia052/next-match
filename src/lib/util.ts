@@ -47,3 +47,8 @@ export function truncateString(text?: string | null, num = 50) {
     }
     return text.slice(0,num) + '...'
 } 
+
+// 两ID总是会按照字母顺序排序
+export function createChatId(a: string, b: string) {
+    return a > b ? `${b}-${a}` : `${a}-${b}`
+}

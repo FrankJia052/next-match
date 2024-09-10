@@ -1,33 +1,45 @@
 'use server';
 
 import { messageSchema, MessageSchema } from "@/lib/schemas/messageSchema";
-import { ActionResult } from "@/types";
-import { Message } from "@prisma/client";
+import { ActionResult, MessageDto } from "@/types";
 import { getAuthUserId } from "./authActions";
 import { prisma } from "@/lib/prisma";
 import { mapMessageToMessageDto } from "@/lib/mappings";
+import { pusherServer } from "@/lib/pusher";
+import { createChatId } from "@/lib/util";
 
-export async function createMessage(recipientUserId: string, data: MessageSchema): Promise<ActionResult<Message>> {
+// 创建message的时候，需要push到PUSHER,更改数据拿到更多sender和recipient的数据
+export async function createMessage(recipientUserId: string, data: MessageSchema): Promise<ActionResult<MessageDto>> {
     try {
         const userId = await getAuthUserId();
 
         const validated = messageSchema.safeParse(data);
 
-        if (!validated.success) return {status: 'error', error: validated.error.errors}
+        if (!validated.success) return { status: 'error', error: validated.error.errors }
 
-        const {text} = validated.data;
+        const { text } = validated.data;
 
         const message = await prisma.message.create({
             data: {
                 text,
                 recipientId: recipientUserId,
                 senderId: userId
-            }
+            },
+            select: messageSelect
         });
-        return {status: 'success', data: message}
+
+        const messageDto = mapMessageToMessageDto(message)
+
+        // 把messageDto push到PUSHER
+        // 参数1是两个user id
+        // 参数2是event name
+        // 参数3是数据
+        await pusherServer.trigger(createChatId(userId, recipientUserId), 'message:new', messageDto);
+
+        return { status: 'success', data: messageDto }
     } catch (error) {
         console.log(error);
-        return {status: 'error', error: 'Something went wrong'}
+        return { status: 'error', error: 'Something went wrong' }
     }
 }
 
@@ -37,7 +49,6 @@ export async function getMessageThread(recipientId: string) {
 
         const messages = await prisma.message.findMany({
             where: {
-                // 更改读取逻辑，如果删除不读取
                 OR: [
                     {
                         senderId: userId,
@@ -54,43 +65,24 @@ export async function getMessageThread(recipientId: string) {
             orderBy: {
                 created: 'asc'
             },
-            select: {
-                id: true,
-                text: true,
-                created: true,
-                dateRead: true,
-                sender: {
-                    select: {
-                        userId: true,
-                        name: true,
-                        image: true
-                    }
-                },
-                recipient: {
-                    select: {
-                        userId: true,
-                        name: true,
-                        image: true
-                    }
-                }
-            }
+            // 更改：直接使用变量
+            select: messageSelect
         })
 
-        // 添加当读取message线程的时候，所有的message状态改成已读
-        if(messages.length > 0) {
+        if (messages.length > 0) {
             await prisma.message.updateMany({
                 where: {
                     senderId: recipientId,
                     recipientId: userId,
                     dateRead: null,
                 },
-                data: {dateRead: new Date()}
+                data: { dateRead: new Date() }
             })
         }
         return messages.map(message => mapMessageToMessageDto(message))
     } catch (error) {
         console.log(error);
-        throw error;        
+        throw error;
     }
 }
 
@@ -98,46 +90,24 @@ export async function getMessagesByContainer(container: string) {
     try {
         const userId = await getAuthUserId();
 
-        const selector = container === 'outbox' ? 'senderId' : 'recipientId';
-
-        // 消息如果删除，不取数据
         const conditions = {
             [container === 'outbox' ? 'senderId' : 'recipientId']: userId,
-            ...(container === 'outbox' ? {senderDeleted: false} : {recipientDeleted: false})
+            ...(container === 'outbox' ? { senderDeleted: false } : { recipientDeleted: false })
         }
 
         const messages = await prisma.message.findMany({
-            // 重点
             where: conditions,
             orderBy: {
                 created: 'desc'
             },
-            select: {
-                id: true,
-                text: true,
-                created: true,
-                dateRead: true,
-                sender: {
-                    select: {
-                        userId: true,
-                        name: true,
-                        image: true
-                    }
-                },
-                recipient: {
-                    select: {
-                        userId: true,
-                        name: true,
-                        image: true
-                    }
-                }
-            }
+            // 更改：直接使用变量
+            select: messageSelect
         });
 
         return messages.map(message => mapMessageToMessageDto(message))
     } catch (error) {
         console.log(error);
-        throw error;        
+        throw error;
     }
 }
 
@@ -148,7 +118,7 @@ export async function deleteMessage(messageId: string, isOutbox: boolean) {
         const userId = await getAuthUserId();
 
         await prisma.message.update({
-            where: {id: messageId},
+            where: { id: messageId },
             data: {
                 [selector]: true
             }
@@ -170,16 +140,38 @@ export async function deleteMessage(messageId: string, isOutbox: boolean) {
                 ]
             }
         })
-        
+
         if (messagesToDelete.length > 0) {
             await prisma.message.deleteMany({
                 where: {
-                    OR: messagesToDelete.map(m => ({id: m.id}))
+                    OR: messagesToDelete.map(m => ({ id: m.id }))
                 }
             })
         }
     } catch (error) {
         console.log(error);
         throw error;
+    }
+}
+
+// 创建这个，避免重复创建
+const messageSelect = {
+    id: true,
+    text: true,
+    created: true,
+    dateRead: true,
+    sender: {
+        select: {
+            userId: true,
+            name: true,
+            image: true
+        }
+    },
+    recipient: {
+        select: {
+            userId: true,
+            name: true,
+            image: true
+        }
     }
 }
