@@ -99,7 +99,7 @@ export default function MessageTable({ messages }: Props) {
                     {(item) => (
                         <TableRow key={item.id} className='cursor-pointer'>
                             {(columnKey) => (
-                                <TableCell className={`${item.dateRead && !isOutbox ? 'font-semibold' : ''}`}>
+                                <TableCell className={`${!item.dateRead && !isOutbox ? 'font-semibold' : ''}`}>
                                     {renderCell(item, columnKey as keyof MessageDto)}
                                 </TableCell>
                             )}

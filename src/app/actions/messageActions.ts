@@ -8,7 +8,6 @@ import { mapMessageToMessageDto } from "@/lib/mappings";
 import { pusherServer } from "@/lib/pusher";
 import { createChatId } from "@/lib/util";
 
-// 创建message的时候，需要push到PUSHER,更改数据拿到更多sender和recipient的数据
 export async function createMessage(recipientUserId: string, data: MessageSchema): Promise<ActionResult<MessageDto>> {
     try {
         const userId = await getAuthUserId();
@@ -30,10 +29,6 @@ export async function createMessage(recipientUserId: string, data: MessageSchema
 
         const messageDto = mapMessageToMessageDto(message)
 
-        // 把messageDto push到PUSHER
-        // 参数1是两个user id
-        // 参数2是event name
-        // 参数3是数据
         await pusherServer.trigger(createChatId(userId, recipientUserId), 'message:new', messageDto);
 
         return { status: 'success', data: messageDto }
@@ -65,19 +60,21 @@ export async function getMessageThread(recipientId: string) {
             orderBy: {
                 created: 'asc'
             },
-            // 更改：直接使用变量
             select: messageSelect
         })
 
+        // 重点：找到未读，收件人是自己，发件人是别人的message id
         if (messages.length > 0) {
+            const readMessageIds = messages.filter(m => m.dateRead === null 
+                && m.recipient?.userId === userId 
+                && m.sender?.userId === recipientId
+            ).map(m => m.id)
             await prisma.message.updateMany({
-                where: {
-                    senderId: recipientId,
-                    recipientId: userId,
-                    dateRead: null,
-                },
+                where: {id: {in: readMessageIds}},
                 data: { dateRead: new Date() }
             })
+            // 把已读消息id的列表，推到PUSHER
+            await pusherServer.trigger(createChatId(recipientId, userId), 'messages:read', readMessageIds);
         }
         return messages.map(message => mapMessageToMessageDto(message))
     } catch (error) {
@@ -100,7 +97,6 @@ export async function getMessagesByContainer(container: string) {
             orderBy: {
                 created: 'desc'
             },
-            // 更改：直接使用变量
             select: messageSelect
         });
 
@@ -154,7 +150,6 @@ export async function deleteMessage(messageId: string, isOutbox: boolean) {
     }
 }
 
-// 创建这个，避免重复创建
 const messageSelect = {
     id: true,
     text: true,
