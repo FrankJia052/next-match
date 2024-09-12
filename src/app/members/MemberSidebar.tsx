@@ -1,4 +1,5 @@
 'use client'
+import PresenceDot from '@/components/PresenceDot'
 import { calculateAge, transformImageUrl } from '@/lib/util'
 import { Button, Card, CardBody, CardFooter, Divider, Image } from '@nextui-org/react'
 import { Member } from '@prisma/client'
@@ -19,15 +20,20 @@ export default function MemberSidebar({ member, navLinks }: Props) {
             <Image
                 height={200}
                 width={200}
-                // 添加处理cloudinary的url的方法
                 src={transformImageUrl(member.image) || '/images/user.png'}
                 alt='User profile image'
                 className='rounded-full mt-6 aspect-square object-cover'
             />
-            <CardBody>
+            <CardBody className='overflow-hidden'>
                 <div className='flex flex-col items-center'>
-                    <div className='text-2xl'>
-                        {member.name}, {calculateAge(member.dateOfBirth)}
+                    {/* 添加在线状态指示器 */}
+                    <div className='flex'>
+                        <div className='text-2xl'>
+                            {member.name}, {calculateAge(member.dateOfBirth)}
+                        </div>
+                        <div>
+                            <PresenceDot member={member}/>
+                        </div>
                     </div>
                     <div className='text-sm text-neutral-500'>
                         {member.city}, {member.country}

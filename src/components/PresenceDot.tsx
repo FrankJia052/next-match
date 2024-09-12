@@ -21,7 +21,7 @@ export default function PresenceDot({ member }: Props) {
 
     return (
         <>
-            <GoDot size={36} className='fill-white absolute -top-[2px] -right-[2px] z-10'/>
+            <GoDot size={36} className='fill-white absolute inset-0 m-auto z-10'/>
             <GoDotFill size={36} className='fill-green-500 animate-pulse'/>
         </>
     )

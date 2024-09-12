@@ -30,6 +30,7 @@ export async function createMessage(recipientUserId: string, data: MessageSchema
         const messageDto = mapMessageToMessageDto(message)
 
         await pusherServer.trigger(createChatId(userId, recipientUserId), 'message:new', messageDto);
+        await pusherServer.trigger(`private-${recipientUserId}`, 'message:new', messageDto)
 
         return { status: 'success', data: messageDto }
     } catch (error) {
@@ -63,7 +64,6 @@ export async function getMessageThread(recipientId: string) {
             select: messageSelect
         })
 
-        // 重点：找到未读，收件人是自己，发件人是别人的message id
         if (messages.length > 0) {
             const readMessageIds = messages.filter(m => m.dateRead === null 
                 && m.recipient?.userId === userId 
@@ -73,7 +73,6 @@ export async function getMessageThread(recipientId: string) {
                 where: {id: {in: readMessageIds}},
                 data: { dateRead: new Date() }
             })
-            // 把已读消息id的列表，推到PUSHER
             await pusherServer.trigger(createChatId(recipientId, userId), 'messages:read', readMessageIds);
         }
         return messages.map(message => mapMessageToMessageDto(message))
@@ -147,6 +146,23 @@ export async function deleteMessage(messageId: string, isOutbox: boolean) {
     } catch (error) {
         console.log(error);
         throw error;
+    }
+}
+
+export async function getUnreadMessageCount() {
+    try {
+        const userId = await getAuthUserId();
+
+        return prisma.message.count({
+            where: {
+                recipientId: userId,
+                dateRead: null,
+                recipientDeleted: false
+            }
+        })
+    } catch (error) {
+        console.log(error);
+        throw(error);
     }
 }
 

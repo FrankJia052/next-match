@@ -17,7 +17,8 @@ export default async function MessagesPage({ searchParams }: { searchParams: { c
       <div
         className='col-span-10'
       >
-        <MessageTable messages={messages}/>
+        {/* 改参数名字 */}
+        <MessageTable initialMessages={messages}/>
       </div>
     </div>
   )

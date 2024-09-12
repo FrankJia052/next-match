@@ -1,5 +1,6 @@
 'use client';
 
+import useMessageStore from '@/hooks/useMessageStore';
 import { Chip } from '@nextui-org/react';
 import clsx from 'clsx';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -8,6 +9,10 @@ import { GoInbox } from 'react-icons/go'
 import { MdOutlineOutbox } from 'react-icons/md'
 
 export default function MessageSidebar() {
+    // 重点
+    const {unreadCount} = useMessageStore((state) => ({
+        unreadCount: state.unreadCount
+    }))
     const searchParams = useSearchParams();
     const [selected, setSelected] = useState<string>(searchParams.get('container') || 'inbox')
     const router = useRouter();
@@ -36,7 +41,6 @@ export default function MessageSidebar() {
                     })}
                     onClick={() => handleSelect(key)}
                 >
-                    {/* icon 可能是inbox或outbox */}
                     <Icon
                         size={24}
                     />
@@ -45,7 +49,8 @@ export default function MessageSidebar() {
                     >
                         <span>{label}</span>
                         {
-                            chip && <Chip>5</Chip>
+                            // 重点
+                            chip && <Chip>{unreadCount}</Chip>
                         }
                     </div>
                 </div>

@@ -38,7 +38,7 @@ export default function MemberCard({ member, likeIds }: Props) {
                     <LikeButton targetId={member.userId} hasLiked={hasLiked} />
                 </div>
                 {/* 添加用户在线状态的显示 */}
-                <div className='absolute top-2 left-3 z-50 bg-red-300'>
+                <div className='absolute top-2 left-3 z-50'>
                     <PresenceDot member={member}/>
                 </div>
             </div>

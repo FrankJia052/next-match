@@ -2,34 +2,33 @@
 import { MessageDto } from '@/types'
 import React, { useEffect, useRef } from 'react'
 import clsx from 'clsx'
-import { Avatar } from '@nextui-org/react';
 import { timeAgo, transformImageUrl } from '@/lib/util';
+import PresenceAvatar from '@/components/PresenceAvatar';
 
 type Props = {
     message: MessageDto;
-    // 用来查看信息是当前用户的还是对方用户的
     currentUserId: string;
 }
 
 export default function MessageBox({ message, currentUserId }: Props) {
     const isCurrentUserSender = message.senderId === currentUserId;
-    // 用hook来把消息固定在最下面，最新的消息
     const messageEndRef = useRef<HTMLDivElement>(null);
-    // 确保消息在最新的位置
     useEffect(() => {
-        if(messageEndRef.current) messageEndRef.current.scrollIntoView({behavior: 'smooth'})
+        if (messageEndRef.current) messageEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }, [messageEndRef])
 
     const renderAvatar = () => (
-        <Avatar
-            name={message.senderName}
-            // 对齐到父元素的右侧
+        // Avatar替换成PresenceAvatar
+        <div
             className='self-end'
-            src={transformImageUrl(message.senderImage) || '/images/user.png'}
-        />
+        >
+            <PresenceAvatar
+                src={transformImageUrl(message.senderImage) || '/images/user.png'}
+                userId={message.senderId}
+            />    
+        </div>
     )
 
-    // 渲染消息的header
     const renderMessageHeader = () => (
         <div
             className={clsx('flex items-center w-full', {
@@ -42,7 +41,7 @@ export default function MessageBox({ message, currentUserId }: Props) {
                 >
                     (Read {timeAgo(message.dateRead)})
                 </span>
-            ):<div></div>}
+            ) : <div></div>}
             <div
                 className='flex'
             >
@@ -60,7 +59,6 @@ export default function MessageBox({ message, currentUserId }: Props) {
         </div>
     )
 
-    // 消息渲染style
     const messageContentClasses = clsx(
         'flex flex-col w-[50%] px-2 py-1',
         {
@@ -85,21 +83,17 @@ export default function MessageBox({ message, currentUserId }: Props) {
         <div
             className='grid grid-rows-1'
         >
-            {/* 消息位置 */}
             <div
                 className={clsx('flex gap-2 mb-3', {
                     'justify-end text-right': isCurrentUserSender,
                     'justify-start': !isCurrentUserSender
                 })}
             >
-                {/* 显示头像 */}
                 {!isCurrentUserSender && renderAvatar()}
-                {/* 消息内容 */}
                 {renderMessageContent()}
                 {isCurrentUserSender && renderAvatar()}
             </div>
-            {/* 这个ref确保显示最后的消息 */}
-            <div ref={messageEndRef}/>
+            <div ref={messageEndRef} />
         </div>
     )
 }
