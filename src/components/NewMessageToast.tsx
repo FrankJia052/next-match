@@ -9,7 +9,6 @@ type Props = {
     message: MessageDto
 }
 
-// 点击会跳转到chat页面
 export default function NewMessageToast({message}:Props) {
     return (
         <Link
@@ -44,6 +43,6 @@ export default function NewMessageToast({message}:Props) {
     )
 }
 
-export const newMessageToast = (message: MessageDto) => {
-    toast(<NewMessageToast message={message}/>)
-}
+// export const newMessageToast = (message: MessageDto) => {
+//     toast(<NewMessageToast message={message}/>)
+// }

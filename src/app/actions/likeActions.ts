@@ -2,13 +2,13 @@
 
 import { prisma } from "@/lib/prisma";
 import { getAuthUserId } from "./authActions";
+import { pusherServer } from "@/lib/pusher";
 
 export async function toggleLikeMember(targetUserId: string, isLiked: boolean) {
     try {
         const userId = await getAuthUserId()      
         if(isLiked) {
             await prisma.like.delete({
-                // 注意连个属性作为primary key的时候的查询方法
                 where: {
                     sourceUserId_targetUserId: {
                         sourceUserId: userId,
@@ -17,11 +17,28 @@ export async function toggleLikeMember(targetUserId: string, isLiked: boolean) {
                 }
             })
         } else {
-            await prisma.like.create({
+            // 重点: 把需要的数据select出来，供like的toast使用
+            const like = await prisma.like.create({
                 data: {
                     sourceUserId: userId,
                     targetUserId
-                } 
+                } ,
+                select: {
+                    sourceMember: {
+                        select: {
+                            name: true,
+                            image: true,
+                            userId: true,                            
+                        }
+                    }
+                }
+            });
+
+            // 重点：把被like的信息，push到PUSHER上
+            await pusherServer.trigger(`private-${targetUserId}`, 'like:new', {
+                name: like.sourceMember.name,
+                image: like.sourceMember.image,
+                userId: like.sourceMember.userId
             })
         }
     } catch (error) {
@@ -42,7 +59,6 @@ export async function fetchCurrentUserLikeIds() {
                 targetUserId: true
             }
         })
-        // 因为likeIds返回的是对象数组，我们这里通过map, 直接返回数组
         return likeIds.map(like => like.targetUserId);
     } catch (error) {
         console.log(error)
@@ -50,7 +66,6 @@ export async function fetchCurrentUserLikeIds() {
     }
 }
 
-// 看目标member选了哪些人作为like
 export async function fetchLikedMembers(type = 'source') {
     try {
         const userId = await getAuthUserId();

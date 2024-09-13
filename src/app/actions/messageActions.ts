@@ -64,6 +64,9 @@ export async function getMessageThread(recipientId: string) {
             select: messageSelect
         })
 
+        // 添加未读消息计数变量
+        let readCount = 0;
+
         if (messages.length > 0) {
             const readMessageIds = messages.filter(m => m.dateRead === null 
                 && m.recipient?.userId === userId 
@@ -73,9 +76,17 @@ export async function getMessageThread(recipientId: string) {
                 where: {id: {in: readMessageIds}},
                 data: { dateRead: new Date() }
             })
+
+            // 重新计算未读消息数量
+            readCount = readMessageIds.length;
+
             await pusherServer.trigger(createChatId(recipientId, userId), 'messages:read', readMessageIds);
         }
-        return messages.map(message => mapMessageToMessageDto(message))
+
+        const messagesToReturn = messages.map(message => mapMessageToMessageDto(message))
+
+        // 返回是未读消息数量
+        return {messages: messagesToReturn, readCount}
     } catch (error) {
         console.log(error);
         throw error;
