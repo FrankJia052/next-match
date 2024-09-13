@@ -6,49 +6,54 @@ import NavLink from './NavLink'
 import { auth } from '@/auth'
 import UserMenu from './UserMenu'
 import { getUserInfoForNav } from '@/app/actions/userActions'
+import Filters from './Filters'
 
 export default async function TopNav() {
     const session = await auth();
-    // 重点：拿到最新的user info
     const userInfo = session?.user && await getUserInfoForNav()
     return (
-        <Navbar
-            maxWidth='xl'
-            className='bg-gradient-to-r from-purple-400 to-purple-700'
-            classNames={{
-                item: [
-                    'text-xl',
-                    'text-white',
-                    'text-uppercase',
-                    'data-[active=true]:text-yellow-200'
-                ]
-            }}
-        >
-            <NavbarBrand as={Link} href="/">
-                <GiMatchTip size={40} />
-                <div className='font-bold text-3xl flex'>
-                    <span className='text-gray-900'>Next</span>
-                    <span className='text-gray-200'>Match</span>
-                </div>
-            </NavbarBrand>
-            <NavbarContent justify='center' className='text-gray-200'>
-                <NavLink href='/members' label='Matches' />
-                <NavLink href='/lists' label='Lists' />
-                <NavLink href='/messages' label='Messages' />
-            </NavbarContent>
-            <NavbarContent justify='end'>
-                {
-                    session?.user ? (
-                        // 重点：把session.user改成userInfo
-                        <UserMenu userInfo={userInfo} />
-                    ) : (
-                        <Fragment>
-                            <Button as={Link} href="/login" variant='bordered' className='text-white'>login</Button>
-                            <Button variant='bordered' as={Link} href="/register" className='text-white'>register</Button>
-                        </Fragment>
-                    )
-                }
-            </NavbarContent>
-        </Navbar>
+        // 把filter加到Navbar后面
+        <>
+            <Navbar
+                maxWidth='xl'
+                className='bg-gradient-to-r from-purple-400 to-purple-700'
+                classNames={{
+                    item: [
+                        'text-xl',
+                        'text-white',
+                        'text-uppercase',
+                        'data-[active=true]:text-yellow-200'
+                    ]
+                }}
+            >
+                <NavbarBrand as={Link} href="/">
+                    <GiMatchTip size={40} />
+                    <div className='font-bold text-3xl flex'>
+                        <span className='text-gray-900'>Next</span>
+                        <span className='text-gray-200'>Match</span>
+                    </div>
+                </NavbarBrand>
+                <NavbarContent justify='center' className='text-gray-200'>
+                    <NavLink href='/members' label='Matches' />
+                    <NavLink href='/lists' label='Lists' />
+                    <NavLink href='/messages' label='Messages' />
+                </NavbarContent>
+                <NavbarContent justify='end'>
+                    {
+                        session?.user ? (
+                            // 重点：把session.user改成userInfo
+                            <UserMenu userInfo={userInfo} />
+                        ) : (
+                            <Fragment>
+                                <Button as={Link} href="/login" variant='bordered' className='text-white'>login</Button>
+                                <Button variant='bordered' as={Link} href="/register" className='text-white'>register</Button>
+                            </Fragment>
+                        )
+                    }
+                </NavbarContent>
+            </Navbar>
+            {/* Filters */}
+            <Filters/>
+        </>
     )
 }
