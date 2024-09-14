@@ -19,22 +19,23 @@ export default function PaginationComponent() {
                     initialPage={1}
                     variant='bordered'
                 />
-            </div>
-            <div
-                className='flex flex-row gap-1 items-center'
-            >
-                {
-                    [3, 6, 12].map(size => (
-                        <div
-                            key={size}
-                            className={clsx('page-size-box', {
-                                'bg-secondary text-white hover:bg-secondary hover:text-white': active === size
-                            })}
-                        >
-                            {size}
-                        </div>
-                    ))
-                }
+                <div
+                    className='flex flex-row gap-1 items-center'
+                >
+                    Page size:
+                    {
+                        [3, 6, 12].map(size => (
+                            <div
+                                key={size}
+                                className={clsx('page-size-box', {
+                                    'bg-secondary text-white hover:bg-secondary hover:text-white': active === size
+                                })}
+                            >
+                                {size}
+                            </div>
+                        ))
+                    }
+                </div>
             </div>
         </div>
     )

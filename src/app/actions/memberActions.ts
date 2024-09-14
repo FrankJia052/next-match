@@ -5,25 +5,37 @@ import { prisma } from "@/lib/prisma";
 import { UserFilters } from "@/types";
 import { Photo } from "@prisma/client";
 import { addYears } from "date-fns";
+import { getAuthUserId } from "./authActions";
 
-// 重点：添加参数
 export async function getMembers(searchParams: UserFilters) {
     const session = await auth()
-    if(!session?.user) return null;
+    if (!session?.user) return null;
 
-    const ageRange = searchParams.ageRange.toString()?.split(',') || [18, 100];
+    const ageRange = searchParams?.ageRange?.toString()?.split(',') || [18, 100];
     const currentDate = new Date();
-    // 拿到最低年龄的生日
-    const minDob = addYears(currentDate, -ageRange[1]-1);
-    // 拿到最高年龄的生日
+    // for age period
+    const minDob = addYears(currentDate, -ageRange[1] - 1);
     const maxDob = addYears(currentDate, -ageRange[0]);
-    
+    //  for sort
+    const orderBySelector = searchParams?.orderBy ?? 'updated';
+    // for gender filter
+    const selectedGender = searchParams?.gender?.toString()?.split(',') || ['male', 'female']
+
     try {
         return prisma.member.findMany({
             where: {
+                AND: [
+                    { dateOfBirth: { gte: minDob } },
+                    { dateOfBirth: { lte: maxDob } },
+                    // 重点
+                    { gender: {in: selectedGender}}
+                ],
                 NOT: {
                     userId: session.user.id
                 }
+            },
+            orderBy: {
+                [orderBySelector]:'desc'
             }
         });
     } catch (error) {
@@ -33,7 +45,7 @@ export async function getMembers(searchParams: UserFilters) {
 
 export async function getMemberByUserId(userId: string) {
     const session = await auth()
-    if(!session?.user) return null;
+    if (!session?.user) return null;
 
     try {
         return prisma.member.findUnique({
@@ -48,11 +60,25 @@ export async function getMemberByUserId(userId: string) {
 
 export async function getMemberPhotosByUserId(userId: string) {
     const member = await prisma.member.findUnique({
-        where: {userId},
-        select: {photos: true}
+        where: { userId },
+        select: { photos: true }
     })
 
-    if(!member) return null;
+    if (!member) return null;
 
     return member.photos.map(p => p) as Photo[]
+}
+
+export async function updateLastActive() {
+    const userId = await getAuthUserId();
+
+    try {
+        return prisma.member.update({
+            where: {userId},
+            data: {updated: new Date()}
+        })
+    } catch (error) {
+        console.log(error);
+        throw error;        
+    }
 }

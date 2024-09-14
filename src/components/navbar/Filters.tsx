@@ -1,39 +1,13 @@
 'use client';
 
+import { useFilters } from '@/hooks/useFilters';
 import { Button, Select, SelectItem, Slider } from '@nextui-org/react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
-import { FaFemale, FaMale } from 'react-icons/fa'
+import { usePathname } from 'next/navigation'
+import React from 'react'
 
 export default function Filters() {
     const pathname = usePathname();
-    // 重点
-    const searchParams = useSearchParams();
-    const router = useRouter();
-
-    // 为了解决label 18-100 的空格问题在服务端和客户端
-    const [clientLoaded, setClientLoaded] = useState(false);
-    
-    useEffect(() => {
-        setClientLoaded(true)
-    }, [])
-
-    const orderByList = [
-        { label: 'Last active', value: 'updated' },
-        { label: 'Newest members', value: 'created' }
-    ]
-
-    const genders = [
-        { value: 'male', icon: FaMale },
-        { value: 'female', icon: FaFemale }
-    ]
-
-    // 重点
-    const handleAgeSelect = (value: number[]) => {
-        const params = new URLSearchParams();
-        params.set('ageRange', value.join(','));
-        router.replace(`${pathname}?${params}`);
-    }
+    const { genderList, orderByList, filters, selectAge, selectGender, selectOrder, clientLoaded } = useFilters();
 
     if (pathname !== '/members') return null;
 
@@ -56,12 +30,13 @@ export default function Filters() {
                         Gender:
                     </div>
                     {
-                        genders.map(({ icon: Icon, value }) => (
+                        genderList.map(({ icon: Icon, value }) => (
                             <Button
                                 key={value}
                                 size='sm'
                                 isIconOnly
-                                color='secondary'
+                                color={filters.gender.includes(value) ? 'secondary' : 'default'}
+                                onClick={() => selectGender(value)}
                             >
                                 <Icon size={24} />
                             </Button>
@@ -72,16 +47,16 @@ export default function Filters() {
                     className='flex flex-row items-center gap-2 w-1/4'
                 >
                     <Slider
-                    // 这里nextUI有个bug，18-100会有空格在client side，但是在server side没有空格，区别会造成error 
-                    // 解决方法：用useState和useEffect在客户端才渲染
+                        // for the bug fix
                         label={clientLoaded && 'Age range'}
+                        // label='Age range'
                         color='secondary'
                         size='sm'
                         minValue={18}
                         maxValue={100}
-                        defaultValue={[18, 100]}
-                        // 重点
-                        onChangeEnd={(value) => handleAgeSelect(value as number[])}
+                        defaultValue={filters.ageRange}
+                        onChangeEnd={(value) => selectAge(value as number[])}
+                        aria-label='age slider'
                     />
                 </div>
                 <div
@@ -90,10 +65,13 @@ export default function Filters() {
                     <Select
                         size='sm'
                         fullWidth
-                        placeholder='Order by'
+                        label='Order by'
                         variant='bordered'
                         color='secondary'
                         aria-label='Order by selector'
+                        selectedKeys={new Set([filters.orderBy])}
+                        onSelectionChange={selectOrder}
+                        disallowEmptySelection={true}
                     >
                         {
                             orderByList.map((item) => (

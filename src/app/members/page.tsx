@@ -6,7 +6,8 @@ import PaginationComponent from '@/components/PaginationComponent';
 import { UserFilters } from '@/types';
 
 export default async function MembersPage({searchParams}:{searchParams: UserFilters}) {
-  const members = await getMembers();
+  // 重点，改了方法，需要传参
+  const members = await getMembers(searchParams);
   const likeIds = await fetchCurrentUserLikeIds();
   return (
     <>
@@ -17,6 +18,5 @@ export default async function MembersPage({searchParams}:{searchParams: UserFilt
       </div>
       <PaginationComponent/>
     </>
-
   )
 }
