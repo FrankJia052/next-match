@@ -93,7 +93,8 @@ export async function getMessageThread(recipientId: string) {
     }
 }
 
-export async function getMessagesByContainer(container: string) {
+// 添加cursor参数
+export async function getMessagesByContainer(container?: string | null, cursor?: string, limit = 10) {
     try {
         const userId = await getAuthUserId();
 
@@ -103,14 +104,35 @@ export async function getMessagesByContainer(container: string) {
         }
 
         const messages = await prisma.message.findMany({
-            where: conditions,
+            // 取数据条件，有cursor则取从cursor到limit + 1的数据
+            // limit + 1 是为了将来把最后一个数据作为 corsor 传回去
+            where: {
+                ...conditions,
+                ...(cursor ? {created: {lte: new Date(cursor)}}: {})
+            },
             orderBy: {
                 created: 'desc'
             },
-            select: messageSelect
+            select: messageSelect,
+            take: limit + 1,
         });
 
-        return messages.map(message => mapMessageToMessageDto(message))
+        let nextCursor: string | undefined;
+
+        // 如果取的数据比limit多，则把最后一个数据拿出来作为next cursor
+        // 否则的话，next cursor 就未定义
+        if(messages.length > limit) {
+            // pop的作用，就是把最后一个item返回，并且从原数据中删除最后一个item
+            const nextItem = messages.pop();
+            nextCursor = nextItem?.created.toISOString();
+        } else {
+            nextCursor = undefined;
+        }
+
+        const messagesToReturn = messages.map(message => mapMessageToMessageDto(message));
+
+        // 返回数据和next cursor
+        return {messages: messagesToReturn, nextCursor}
     } catch (error) {
         console.log(error);
         throw error;

@@ -31,9 +31,35 @@ type MessageWithSenderRecipient = Prisma.MessageGetPayload<{
     }
 }>
 
-// 用户过滤的type
+// 添加UserFilters
 type UserFilters = {
     ageRange: number[];
     orderBy: string;
     gender: string[];
+    withPhoto: boolean;
+}
+
+type PagingParams = {
+    pageNumber: number;
+    pageSize: number;    
+}
+
+type PagingResult = {
+    totalPages: number;
+    totalCount: number;
+} & PagingParams
+
+type PaginatedResponse<T> = {
+    items: T[];
+    totalCount: number;
+}
+
+// 添加withPhoto
+type GetMemberParams = {
+    ageRange?: string;
+    gender?: string;
+    pageNumber?: string;
+    pageSize?: string;
+    orderBy?: string;
+    withPhoto?: string;
 }

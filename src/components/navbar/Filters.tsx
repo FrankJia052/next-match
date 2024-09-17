@@ -1,15 +1,12 @@
 'use client';
 
 import { useFilters } from '@/hooks/useFilters';
-import { Button, Select, SelectItem, Slider } from '@nextui-org/react';
-import { usePathname } from 'next/navigation'
+import { Button, Select, SelectItem, Slider, Spinner, Switch } from '@nextui-org/react';
 import React from 'react'
 
 export default function Filters() {
-    const pathname = usePathname();
-    const { genderList, orderByList, filters, selectAge, selectGender, selectOrder, clientLoaded } = useFilters();
-
-    if (pathname !== '/members') return null;
+    // 添加selectWithPhoto
+    const { genderList, orderByList, filters, selectAge, selectGender, selectOrder, clientLoaded, isPending, selectWithPhoto } = useFilters();
 
     return (
         <div
@@ -19,9 +16,16 @@ export default function Filters() {
                 className='flex flex-row justify-around items-center'
             >
                 <div
-                    className='text-secondary font-semibold text-xl'
+                    className='flex gap-2 items-center'
                 >
-                    Result: 10
+                    <div
+                        className='text-secondary font-semibold text-xl'
+                    >
+                        Result: 10
+                    </div>
+                    {
+                        isPending && <Spinner size='sm' color='secondary'/>
+                    }
                 </div>
                 <div
                     className='flex gap-2 items-center'
@@ -56,7 +60,23 @@ export default function Filters() {
                         maxValue={100}
                         defaultValue={filters.ageRange}
                         onChangeEnd={(value) => selectAge(value as number[])}
-                        aria-label='age slider'
+                        aria-label='Age range slider'
+                    />
+                </div>
+                {/* 添加开关 */}
+                <div
+                    className='flex flex-col items-center'
+                >
+                    <p
+                        className='text-sm'
+                    >
+                        With photo
+                    </p>
+                    <Switch
+                        color='secondary'
+                        defaultSelected
+                        size='sm'
+                        onChange={selectWithPhoto}
                     />
                 </div>
                 <div

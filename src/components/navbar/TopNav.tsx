@@ -6,13 +6,12 @@ import NavLink from './NavLink'
 import { auth } from '@/auth'
 import UserMenu from './UserMenu'
 import { getUserInfoForNav } from '@/app/actions/userActions'
-import Filters from './Filters'
+import FiltersWrapper from '../FiltersWrapper'
 
 export default async function TopNav() {
     const session = await auth();
     const userInfo = session?.user && await getUserInfoForNav()
     return (
-        // 把filter加到Navbar后面
         <>
             <Navbar
                 maxWidth='xl'
@@ -41,7 +40,6 @@ export default async function TopNav() {
                 <NavbarContent justify='end'>
                     {
                         session?.user ? (
-                            // 重点：把session.user改成userInfo
                             <UserMenu userInfo={userInfo} />
                         ) : (
                             <Fragment>
@@ -53,7 +51,7 @@ export default async function TopNav() {
                 </NavbarContent>
             </Navbar>
             {/* Filters */}
-            <Filters/>
+            <FiltersWrapper />
         </>
     )
 }

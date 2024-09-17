@@ -1,14 +1,15 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import useFilterStore from "./useFilterStore"
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState, useTransition } from "react";
 import { FaFemale, FaMale } from "react-icons/fa";
 import { Selection } from "@nextui-org/react";
+import usePaginationStore from "./usePaginationStore";
 
-// 把所有Filter中逻辑相关的方法都复制到这里
 export const useFilters = () => {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const router = useRouter();
+    const [isPending, startTransition] = useTransition();
 
     // for the bug fix
     const [clientLoaded, setClientLoaded] = useState(false);
@@ -16,22 +17,40 @@ export const useFilters = () => {
         setClientLoaded(true)
     }, [])
 
-    // 这里使用我们新的filter store
-    // 如果store中的全要，就无需再声明一次了
     const { filters, setFilters } = useFilterStore();
 
-    const { gender, ageRange, orderBy } = filters;
+    const {pageNumber, pageSize, setPage} = usePaginationStore(state => ({
+        pageNumber: state.pagination.pageNumber,
+        pageSize: state.pagination.pageSize,
+        setPage: state.setPage
+    }))
 
-    // 这里写的太漂亮了
+    // 添加withPhoto
+    const { gender, ageRange, orderBy, withPhoto } = filters;
+
     useEffect(() => {
-        const searchParams = new URLSearchParams();
+        // 当withPhoto变化的时候，一样初始化分页
+        if(gender || ageRange || orderBy || withPhoto) {
+            setPage(1);
+        }
+    }, [ageRange, gender, orderBy, setPage, withPhoto])
 
-        if (gender) searchParams.set('gender', gender.join(','));
-        if (ageRange) searchParams.set('ageRange', ageRange.toString());
-        if (orderBy) searchParams.set('orderBy', orderBy)
+    useEffect(() => {
+        startTransition(() => {
+            const searchParams = new URLSearchParams();
 
-        router.replace(`${pathname}?${searchParams}`);
-    }, [ageRange, gender, orderBy, pathname, router])
+            if (gender) searchParams.set('gender', gender.join(','));
+            if (ageRange) searchParams.set('ageRange', ageRange.toString());
+            if (orderBy) searchParams.set('orderBy', orderBy);
+            if (pageSize) searchParams.set('pageSize', pageSize.toString());
+            if (pageNumber) searchParams.set('pageNumber', pageNumber.toString());
+            // 重点: 不要用if，否则withPhoto会有可能不存在，我们需要它一直存在
+            searchParams.set('withPhoto', withPhoto.toString());
+    
+            router.replace(`${pathname}?${searchParams}`);
+        })
+
+    }, [ageRange, gender, orderBy, pathname, router, pageSize, pageNumber, withPhoto])
 
     const orderByList = [
         { label: 'Last active', value: 'updated' },
@@ -59,6 +78,11 @@ export const useFilters = () => {
         
     }
 
+    // 重点: 切换withImage的逻辑，这个event是onchange的事件，注意 e 的type
+    const handleWithPhotoToggle = (e:ChangeEvent<HTMLInputElement>) => {
+        setFilters('withPhoto', e.target.checked);
+    }
+
     return {
         clientLoaded,
         orderByList,
@@ -66,6 +90,8 @@ export const useFilters = () => {
         selectAge: handleAgeSelect,
         selectOrder: handleOrderSelect,
         selectGender: handleGenderSelect,
-        filters
+        filters,
+        isPending,
+        selectWithPhoto:handleWithPhotoToggle
     }
 }

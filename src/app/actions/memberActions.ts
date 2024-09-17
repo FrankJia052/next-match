@@ -2,44 +2,88 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { UserFilters } from "@/types";
-import { Photo } from "@prisma/client";
+import { GetMemberParams, PaginatedResponse } from "@/types";
+import { Member, Photo } from "@prisma/client";
 import { addYears } from "date-fns";
 import { getAuthUserId } from "./authActions";
 
-export async function getMembers(searchParams: UserFilters) {
-    const session = await auth()
-    if (!session?.user) return null;
+export async function getMembers({
+    ageRange='18,100',
+    gender='male,female',
+    orderBy='updated',
+    pageNumber='1',
+    pageSize='12',
+    // 添加参数
+    withPhoto='true'
+}: GetMemberParams):Promise<PaginatedResponse<Member>> {
+    const userId = await getAuthUserId();
 
-    const ageRange = searchParams?.ageRange?.toString()?.split(',') || [18, 100];
+    const [minAge, maxAge] = ageRange.split(',');
     const currentDate = new Date();
-    // for age period
-    const minDob = addYears(currentDate, -ageRange[1] - 1);
-    const maxDob = addYears(currentDate, -ageRange[0]);
-    //  for sort
-    const orderBySelector = searchParams?.orderBy ?? 'updated';
-    // for gender filter
-    const selectedGender = searchParams?.gender?.toString()?.split(',') || ['male', 'female']
+    const minDob = addYears(currentDate, -maxAge - 1);
+    const maxDob = addYears(currentDate, -minAge);
+
+    const selectedGender = gender.split(',');
+
+    const page = parseInt(pageNumber);
+    const limit = parseInt(pageSize);
+
+    const skip = (page - 1) * limit;
+
+    //  以下是解释where里的逻辑 
+    // let conditions = [
+    //     {dateOfBirth: {gte: minDob}},
+    //     {dateOfBirth: {lte: maxDob}},
+    //     {gender: {in: selectedGender}},
+    // ];
+
+    // if (withPhoto === 'true') {
+    //     conditions.push({image: {not: null}})
+    // }
 
     try {
-        return prisma.member.findMany({
+        const count = await prisma.member.count({
             where: {
                 AND: [
                     { dateOfBirth: { gte: minDob } },
                     { dateOfBirth: { lte: maxDob } },
-                    // 重点
-                    { gender: {in: selectedGender}}
+                    { gender: {in: selectedGender}},
+                    // 重点，添加image的筛选
+                    ...(withPhoto === 'true'? [{image: {not: null}}] : [])
                 ],
                 NOT: {
-                    userId: session.user.id
+                    userId
+                }
+            },
+        })
+
+        const members = await prisma.member.findMany({
+            where: {
+                AND: [
+                    { dateOfBirth: { gte: minDob } },
+                    { dateOfBirth: { lte: maxDob } },
+                    { gender: {in: selectedGender}},
+                    // 重点，添加image的筛选
+                    ...(withPhoto === 'true'? [{image: {not: null}}] : [])
+                ],
+                NOT: {
+                    userId
                 }
             },
             orderBy: {
-                [orderBySelector]:'desc'
-            }
+                [orderBy]:'desc',
+            },
+            skip,
+            take: limit
         });
+
+        return {
+            items: members,
+            totalCount: count
+        }
     } catch (error) {
         console.log(error)
+        throw error
     }
 }
 

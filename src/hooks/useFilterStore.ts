@@ -11,7 +11,9 @@ const useFilterStore = create<FilterState>()(devtools((set) => ({
     filters: {
         ageRange: [18, 100],
         orderBy: 'updated',
-        gender: ['male', 'female']
+        gender: ['male', 'female'],
+        // 添加withPhoto
+        withPhoto: true
     },
     setFilters: (filterName, value) => set(state => {
         return {
