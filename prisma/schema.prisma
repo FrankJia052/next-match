@@ -40,6 +40,8 @@ model User {
   emailVerified DateTime? @map("email_verified")
   passwordHash  String
   image         String?
+  // 重点：add for later
+  profileComplete Boolean @default(false)
   accounts      Account[]
   // one-to-one relationship with user
   member        Member?
@@ -103,4 +105,20 @@ model Message {
   dateRead         DateTime?
   senderDeleted    Boolean   @default(false)
   recipientDeleted Boolean   @default(false)
+}
+
+// 重点: 记录一些账户token
+model Token {
+  id String @id @default(cuid())
+  email String
+  token String
+  expires DateTime
+  type TokenType
+
+  @@unique([email, token])
+}
+
+enum TokenType {
+  VERIFICATION
+  PASSWORD_RESET
 }

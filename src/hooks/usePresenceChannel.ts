@@ -4,7 +4,7 @@ import { Channel, Members } from "pusher-js";
 import { pusherClient } from "@/lib/pusher";
 import { updateLastActive } from "@/app/actions/memberActions";
 
-export const usePresenceChannel = () => {
+export const usePresenceChannel = (userId: string | null) => {
     const {set, add, remove} = usePresenceStore(state => ({
         set: state.set,
         add: state.add,
@@ -26,10 +26,11 @@ export const usePresenceChannel = () => {
     }, [remove])
 
     useEffect(() => {
+        // 如果用户未登陆，跳过所有的PUSHER逻辑
+        if (!userId) return;
         if(!channelRef.current) {
             channelRef.current = pusherClient.subscribe('presence-nm')
 
-            // 把用户状态更新放在这里
             channelRef.current.bind('pusher:subscription_succeeded', async (members: Members) => {
                 handleSetMembers(Object.keys(members.members));
                 await updateLastActive();
@@ -52,5 +53,5 @@ export const usePresenceChannel = () => {
                 channelRef.current.unbind('pusher:member_removed', handleRemoveMember);
             }
         }
-    }, [handleSetMembers, handleAddMember, handleRemoveMember])
+    }, [handleSetMembers, handleAddMember, handleRemoveMember, userId])
 }

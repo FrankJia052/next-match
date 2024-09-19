@@ -12,7 +12,7 @@ async function seedMembers() {
             name: member.name,
             passwordHash: await hash('password', 10),
             image: member.image,
-            // 注意如何同时创建了关联表
+            profileComplete: true,
             member: {
                 create: {
                     dateOfBirth: new Date(member.dateOfBirth),
@@ -43,6 +43,5 @@ main().catch(e => {
     console.error(e);
     process.exit(1);
 }).finally(async () => {
-    // 生成完种子文件后，要关闭prisma
     await prisma.$disconnect();
 })

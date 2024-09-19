@@ -9,19 +9,15 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 export default function Providers({ children, userId }: { children: ReactNode, userId: string | null }) {
-  // 使用useRef来避免useEffect在开发端的restrict mode触发两次
   const isUnreadCountSet = useRef(false);
-  // 使用useMessageStore hook
   const {updateUnreadCount} = useMessageStore(state => ({
     updateUnreadCount: state.updateUnreadCount
   }));
 
-  // 创建使用updateUnreadCount的方法
   const setUnreadCount = useCallback((amount: number) => {
     updateUnreadCount(amount)
   }, [updateUnreadCount]);
 
-  // 页面渲染的时候，使用上面的方法
   useEffect(() => {
     if(!isUnreadCountSet.current && userId) {
       getUnreadMessageCount().then(count => {
@@ -31,7 +27,8 @@ export default function Providers({ children, userId }: { children: ReactNode, u
     }
   }, [setUnreadCount, userId]);
 
-  usePresenceChannel();
+  // 把userId传进去验证一下，这样就不会有未登录的时候有PUSHER验证失败的警告了
+  usePresenceChannel(userId);
   useNotificationChannel(userId);
   return (
     <NextUIProvider>

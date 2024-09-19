@@ -2,7 +2,7 @@
 import { auth, signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { LoginSchema } from "@/lib/schemas/loginSchema";
-import { RegisterSchema, registerSchema } from "@/lib/schemas/registerSchema";
+import { combinedRegisterSchema, RegisterSchema, registerSchema } from "@/lib/schemas/registerSchema";
 import { ActionResult } from "@/types";
 import { User } from "@prisma/client";
 import bcrypt from "bcryptjs"
@@ -45,13 +45,13 @@ export async function signOutUser() {
 
 export async function registerUser(data: RegisterSchema): Promise<ActionResult<User>> {
     try {
-        const validated = registerSchema.safeParse(data)
+        const validated = combinedRegisterSchema.safeParse(data)
 
         if (!validated.success) {
             return { status: "error", error: validated.error.errors }
         }
 
-        const { name, email, password } = validated.data;
+        const { name, email, password, gender, description, dateOfBirth, city, country } = validated.data;
         const hashedPassword = await bcrypt.hash(password, 10)
 
         const existingUser = await prisma.user.findUnique({
@@ -64,7 +64,19 @@ export async function registerUser(data: RegisterSchema): Promise<ActionResult<U
             data: {
                 name,
                 email,
-                passwordHash: hashedPassword
+                passwordHash: hashedPassword,
+                // 重点添加
+                profileComplete: true,
+                member: {
+                    create: {
+                        name,
+                        description,
+                        city,
+                        country,
+                        dateOfBirth: new Date(dateOfBirth),
+                        gender
+                    }
+                }
             }
         })
 
