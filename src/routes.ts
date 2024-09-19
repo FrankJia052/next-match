@@ -5,6 +5,7 @@ export const publicRoutes = [
 export const authRoutes = [
     '/login',
     '/register',
-    // 添加注册成功路径
-    '/register/success'
+    '/register/success',
+    // 添加验证email的路径
+    '/verify-email',
 ]

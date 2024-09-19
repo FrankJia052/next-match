@@ -2,7 +2,6 @@ import { Button, Card, CardBody, CardFooter, CardHeader } from '@nextui-org/reac
 import React, { ReactNode } from 'react'
 import { IconType } from 'react-icons/lib'
 
-// 把Card组件内容摘出来，重复使用
 type Props = {
     body?: ReactNode;
     headerIcon: IconType;
@@ -10,8 +9,9 @@ type Props = {
     subHeaderText?: string;
     action?: () => void;
     actionLabel?: string;
+    footer?: ReactNode;
 }
-export default function CardWrapper({ body, headerIcon: Icon, headerText, subHeaderText, action, actionLabel }: Props) {
+export default function CardWrapper({ body, headerIcon: Icon, headerText, subHeaderText, action, actionLabel, footer }: Props) {
     return (
         <div className='flex items-center justify-center vertical-center'>
             <Card className='w-2/5 mx-auto p-5'>
@@ -36,6 +36,10 @@ export default function CardWrapper({ body, headerIcon: Icon, headerText, subHea
                                 {actionLabel}
                             </Button>
                         )
+                    }
+                    {
+                        footer && 
+                        <>{footer}</>
                     }
                 </CardFooter>
             </Card>
