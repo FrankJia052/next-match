@@ -6,6 +6,8 @@ export const authRoutes = [
     '/login',
     '/register',
     '/register/success',
-    // 添加验证email的路径
     '/verify-email',
+    '/forgot-password',
+    // 添加重置密码页面路径
+    '/reset-password'
 ]
