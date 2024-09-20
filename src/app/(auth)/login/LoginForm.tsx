@@ -9,6 +9,7 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { GiPadlock } from 'react-icons/gi'
 import { toast } from 'react-toastify'
+import SocialLogin from './SocialLogin'
 
 export default function LoginForm() {
     const router = useRouter()
@@ -65,7 +66,8 @@ export default function LoginForm() {
                         >
                             Login
                         </Button>
-                        {/* 添加忘记密码按钮 */}
+                        {/* 添加social login按钮 */}
+                        <SocialLogin/>
                         <div
                             className='flex justify-center hover:underline text-sm'
                         >

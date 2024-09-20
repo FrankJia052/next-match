@@ -38,9 +38,9 @@ model User {
   name          String?
   email         String?   @unique
   emailVerified DateTime? @map("email_verified")
-  passwordHash  String
+  // 把passwordHash改成可选，因为oauth拿到的信息没有password
+  passwordHash  String?
   image         String?
-  // 重点：add for later
   profileComplete Boolean @default(false)
   accounts      Account[]
   // one-to-one relationship with user

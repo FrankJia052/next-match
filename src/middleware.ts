@@ -8,6 +8,8 @@ export default auth((req) => {
 
     const isPublic = publicRoutes.includes(nextUrl.pathname)
     const isAuthRoute = authRoutes.includes(nextUrl.pathname)
+    // 从req.auth(session)中拿到isProfileComplete
+    const isProfileComplete = req.auth?.user.profileComplete;
 
     if (isPublic) {
         return NextResponse.next()
@@ -23,6 +25,12 @@ export default auth((req) => {
     if (!isPublic && !isLoggedIn) {
         return NextResponse.redirect(new URL('/login', nextUrl))
     }
+
+    // 添加新条件：没有用户详情的用户登陆，redirect到用户详情
+    if (isLoggedIn && !isProfileComplete && nextUrl.pathname !== '/complete-profile') {
+        return NextResponse.redirect(new URL('/complete-profile', nextUrl))
+    }
+
 
     return NextResponse.next();
 })

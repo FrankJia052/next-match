@@ -8,7 +8,8 @@ import React, { ReactNode, useCallback, useEffect, useRef } from 'react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-export default function Providers({ children, userId }: { children: ReactNode, userId: string | null }) {
+// 添加参数 profileComplete
+export default function Providers({ children, userId, profileComplete }: { children: ReactNode, userId: string | null, profileComplete: boolean }) {
   const isUnreadCountSet = useRef(false);
   const {updateUnreadCount} = useMessageStore(state => ({
     updateUnreadCount: state.updateUnreadCount
@@ -27,9 +28,9 @@ export default function Providers({ children, userId }: { children: ReactNode, u
     }
   }, [setUnreadCount, userId]);
 
-  // 把userId传进去验证一下，这样就不会有未登录的时候有PUSHER验证失败的警告了
-  usePresenceChannel(userId);
-  useNotificationChannel(userId);
+  // 传递profileComplete进行验证的条件之一
+  usePresenceChannel(userId, profileComplete);
+  useNotificationChannel(userId, profileComplete);
   return (
     <NextUIProvider>
       <ToastContainer position='bottom-right' hideProgressBar className='z-50' />

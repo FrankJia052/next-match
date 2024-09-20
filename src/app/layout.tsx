@@ -14,14 +14,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 拿到userId传给Provider，里面的privateChannel hook需要
   const session = await auth();
   const userId = session?.user?.id || null;
+  // 拿到profileComplete
+  const profileComplete = session?.user.profileComplete as boolean;
 
   return (
     <html lang="en">
       <body>
-        <Providers userId={userId}>
+        <Providers userId={userId} profileComplete={profileComplete}>
           <TopNav />
           <main className="container mx-auto">
             {children}

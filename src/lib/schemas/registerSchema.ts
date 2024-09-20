@@ -9,13 +9,11 @@ export const registerSchema = z.object({
     })
 })
 
-// 添加注册表收集更多信息的定义
 export const profileSchema = z.object({
     gender: z.string().min(1),
     description: z.string().min(1),
     city: z.string().min(1),
     country: z.string().min(1),
-    // 添加了验证，只有18岁以上才能注册
     dateOfBirth: z.string().min(1, {
         message: 'Date of birth is required'
     }).refine(dateString => {
@@ -28,6 +26,9 @@ export const profileSchema = z.object({
 
 // 这行代码通过合并 registerSchema 和 profileSchema，创建了一个新的验证模式 combinedRegisterSchema。
 export const combinedRegisterSchema = registerSchema.and(profileSchema);
+
+// 添加profileSchema的type输出
+export type ProfileSchema = z.infer<typeof profileSchema>;
 
 // 让RegisterSchema同时包含profileSchema和registerSchema的属性定义
 export type RegisterSchema = z.infer<typeof registerSchema & typeof profileSchema>

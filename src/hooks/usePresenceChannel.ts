@@ -4,7 +4,8 @@ import { Channel, Members } from "pusher-js";
 import { pusherClient } from "@/lib/pusher";
 import { updateLastActive } from "@/app/actions/memberActions";
 
-export const usePresenceChannel = (userId: string | null) => {
+// 添加profileComplete参数
+export const usePresenceChannel = (userId: string | null, profileComplete: boolean) => {
     const {set, add, remove} = usePresenceStore(state => ({
         set: state.set,
         add: state.add,
@@ -26,8 +27,8 @@ export const usePresenceChannel = (userId: string | null) => {
     }, [remove])
 
     useEffect(() => {
-        // 如果用户未登陆，跳过所有的PUSHER逻辑
-        if (!userId) return;
+        // 添加条件：profileComplete
+        if (!userId || !profileComplete) return;
         if(!channelRef.current) {
             channelRef.current = pusherClient.subscribe('presence-nm')
 
@@ -53,5 +54,6 @@ export const usePresenceChannel = (userId: string | null) => {
                 channelRef.current.unbind('pusher:member_removed', handleRemoveMember);
             }
         }
-    }, [handleSetMembers, handleAddMember, handleRemoveMember, userId])
+        // 添加依赖
+    }, [handleSetMembers, handleAddMember, handleRemoveMember, userId, profileComplete])
 }
