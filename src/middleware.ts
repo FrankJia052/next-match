@@ -6,13 +6,21 @@ export default auth((req) => {
     const {nextUrl} = req;
     const isLoggedIn = !!req.auth;
 
-    const isPublic = publicRoutes.includes(nextUrl.pathname)
-    const isAuthRoute = authRoutes.includes(nextUrl.pathname)
-    // 从req.auth(session)中拿到isProfileComplete
+    const isPublic = publicRoutes.includes(nextUrl.pathname);
+    const isAuthRoute = authRoutes.includes(nextUrl.pathname);
     const isProfileComplete = req.auth?.user.profileComplete;
+    // 添加是否admin和admin route的判定
+    const isAdmin = req.auth?.user.role === 'ADMIN';
+    const isAdminRoute = nextUrl.pathname.startsWith('/admin');
 
-    if (isPublic) {
-        return NextResponse.next()
+    // 更新条件添加admin判定, 当admin判定为真，则不会进入下面的补充信息页面isProfileComplete
+    if (isPublic || isAdmin) {
+        return NextResponse.next();
+    }
+
+    // 添加admin路径的保护
+    if (isAdminRoute && !isAdmin) {
+        return NextResponse.redirect(new URL('/', nextUrl));
     }
 
     if (isAuthRoute) {
@@ -26,7 +34,6 @@ export default auth((req) => {
         return NextResponse.redirect(new URL('/login', nextUrl))
     }
 
-    // 添加新条件：没有用户详情的用户登陆，redirect到用户详情
     if (isLoggedIn && !isProfileComplete && nextUrl.pathname !== '/complete-profile') {
         return NextResponse.redirect(new URL('/complete-profile', nextUrl))
     }
@@ -35,6 +42,8 @@ export default auth((req) => {
     return NextResponse.next();
 })
 
+// middleware is not going to be applied to anything that's listed inside here
+// 更新public中images的无需经过中间件
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
+    matcher: ['/((?!api|_next/static|_next/image|images|favicon.ico).*)']
 }

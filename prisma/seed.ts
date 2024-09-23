@@ -26,7 +26,9 @@ async function seedMembers() {
                     image: member.image,
                     photos: {
                         create: {
-                            url: member.image
+                            url: member.image,
+                            // 把isApproved添加进seed数据
+                            isApproved: true
                         }
                     }
                 }
@@ -35,8 +37,23 @@ async function seedMembers() {
     }))
 }
 
+// 创建seedAdmin
+async function seedAdmin() {
+    return prisma.user.create({
+        data: {
+            email: 'admin@test.com',
+            emailVerified: new Date(),
+            name: 'Admin',
+            passwordHash: await hash('password', 10),
+            role: 'ADMIN'
+        }
+    })
+}
+
+// 把seed加载进去
 async function main() {
     await seedMembers();
+    await seedAdmin();
 }
 
 main().catch(e => {

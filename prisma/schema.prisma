@@ -34,17 +34,18 @@ model Account {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  // 把passwordHash改成可选，因为oauth拿到的信息没有password
-  passwordHash  String?
-  image         String?
-  profileComplete Boolean @default(false)
-  accounts      Account[]
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime? @map("email_verified")
+  passwordHash    String?
+  image           String?
+  profileComplete Boolean   @default(false)
+  // 添加角色
+  role            Role      @default(MEMBER)
+  accounts        Account[]
   // one-to-one relationship with user
-  member        Member?
+  member          Member?
 }
 
 model Member {
@@ -69,9 +70,11 @@ model Member {
 }
 
 model Photo {
-  id       String  @id @default(cuid())
-  url      String
-  publicId String?
+  id         String  @id @default(cuid())
+  url        String
+  publicId   String?
+  // 添加isApproved属性
+  isApproved Boolean @default(false)
 
   // many-to-one relationship with Member
   memberId String
@@ -109,11 +112,11 @@ model Message {
 
 // 重点: 记录一些账户token
 model Token {
-  id String @id @default(cuid())
-  email String
-  token String
+  id      String    @id @default(cuid())
+  email   String
+  token   String
   expires DateTime
-  type TokenType
+  type    TokenType
 
   @@unique([email, token])
 }
@@ -121,4 +124,10 @@ model Token {
 enum TokenType {
   VERIFICATION
   PASSWORD_RESET
+}
+
+// 创建角色
+enum Role {
+  ADMIN
+  MEMBER
 }

@@ -103,14 +103,21 @@ export async function getMemberByUserId(userId: string) {
 }
 
 export async function getMemberPhotosByUserId(userId: string) {
+    const currentUserId = await getAuthUserId();
+
     const member = await prisma.member.findUnique({
         where: { userId },
-        select: { photos: true }
+        // 添加未审核图片，如果用户不是本人，无法显示
+        select: { photos: {
+            where: currentUserId === userId? {} : {isApproved: true}
+        }}
     })
 
     if (!member) return null;
 
-    return member.photos.map(p => p) as Photo[]
+    // 这里的map没什么用
+    // return member.photos.map(p => p) as Photo[]
+    return member.photos as Photo[];
 }
 
 export async function updateLastActive() {

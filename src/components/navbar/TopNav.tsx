@@ -11,6 +11,32 @@ import FiltersWrapper from '../FiltersWrapper'
 export default async function TopNav() {
     const session = await auth();
     const userInfo = session?.user && await getUserInfoForNav()
+
+    // 重点: admin 用户和 普通用户看到的navbar不同
+    const memberLinks = [
+        {
+            href: '/members',
+            label: 'Matches'
+        },
+        {
+            href: '/lists',
+            label: 'Lists'
+        },
+        {
+            href: '/messages',
+            label: 'Messages'
+        },
+    ]
+
+    const adminLinks = [
+        {
+            href: '/admin/moderation',
+            label: 'PHOTO MODERATION'
+        },
+    ]
+
+    const links = session?.user.role === 'ADMIN' ? adminLinks : memberLinks;
+
     return (
         <>
             <Navbar
@@ -33,9 +59,12 @@ export default async function TopNav() {
                     </div>
                 </NavbarBrand>
                 <NavbarContent justify='center' className='text-gray-200'>
-                    <NavLink href='/members' label='Matches' />
-                    <NavLink href='/lists' label='Lists' />
-                    <NavLink href='/messages' label='Messages' />
+                    {
+                        // 更新Navbar links
+                        links.map(item => (
+                            <NavLink href={item.href} key={item.href} label={item.label} />
+                        ))
+                    }
                 </NavbarContent>
                 <NavbarContent justify='end'>
                     {

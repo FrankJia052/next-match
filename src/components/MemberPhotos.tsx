@@ -6,6 +6,7 @@ import DeleteButton from './DeleteButton'
 import { Photo } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { deleteImage, setMainImage } from '@/app/actions/userActions'
+import { toast } from 'react-toastify'
 
 type Props = {
     photos: Photo[] | null;
@@ -24,12 +25,17 @@ export default function MemberPhotos({ photos, editing, mainImageUrl }: Props) {
     const onSetMain = async (photo: Photo) => {
         if (photo.url === mainImageUrl) return null;
         setLoading({ isLoading: true, id: photo.id, type: 'main' })
-        await setMainImage(photo);
-        router.refresh()
-        setLoading({ isLoading: false, id: '', type: '' })
+        // 添加图片未审核过的逻辑
+        try {
+            await setMainImage(photo);
+            router.refresh()
+        } catch (error:any) {
+            toast.error(error.message);            
+        } finally {
+            setLoading({ isLoading: false, id: '', type: '' })
+        }
     }
 
-    // 删除的事件
     const onDelete = async (photo: Photo) => {
         if(photo.url === mainImageUrl) return null;
         setLoading({isLoading: true, id: photo.id, type: 'delete'});
@@ -54,7 +60,6 @@ export default function MemberPhotos({ photos, editing, mainImageUrl }: Props) {
                                         } 
                                     />
                                 </div>
-                                {/* 重点：删除事件 */}
                                 <div 
                                     onClick={() => onDelete(photo)}
                                     className='absolute top-3 right-3 z-50' 

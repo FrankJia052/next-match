@@ -252,3 +252,14 @@ export async function completeSocialLoginProfile(data: ProfileSchema): Promise<A
         throw error;
     }
 }
+
+// 创建拿role新方法
+export async function getUserRole() {
+    const session = await auth();
+
+    const role = session?.user.role;
+
+    if(!role) throw new Error('Not in role');
+
+    return role;
+}

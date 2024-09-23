@@ -3,23 +3,24 @@ import NextAuth from "next-auth"
 
 import authConfig from "./auth.config"
 import { prisma } from "./lib/prisma"
+import { Role } from "@prisma/client"
  
 export const { auth, handlers: {GET, POST}, signIn, signOut } = NextAuth({
   callbacks: {
-    // 注意next.auth中jwt callback的用法
     async jwt({user, token}) {
       if(user) {
-        console.log({user})
-        // 重点
         token.profileComplete = user.profileComplete;
+        // 重点
+        token.role = user.role
       }
       return token;
     },
     async session({token, session}) {
       if (token.sub && session.user) {
         session.user.id = token.sub
-        // 重点
         session.user.profileComplete = token.profileComplete as boolean;
+        // 重点
+        session.user.role = token.role as Role;
       }
       return session
     }
