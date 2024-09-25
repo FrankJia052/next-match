@@ -11,14 +11,12 @@ export default async function page() {
     const photos = await getMemberPhotosByUserId(userId);
     return (
         <>
-        {/* 把上传按钮放到右侧 */}
             <CardHeader className='flex flex-row justify-between items-center'>
                 <div
                     className='text-2xl font-semibold text-secondary'
                 >
                     Edit Profile
                 </div>
-                {/* 把按钮放在这里 */}
                 <MemberPhotoUpload />
             </CardHeader>
             <Divider />

@@ -12,7 +12,6 @@ export default async function TopNav() {
     const session = await auth();
     const userInfo = session?.user && await getUserInfoForNav()
 
-    // 重点: admin 用户和 普通用户看到的navbar不同
     const memberLinks = [
         {
             href: '/members',
@@ -60,8 +59,8 @@ export default async function TopNav() {
                 </NavbarBrand>
                 <NavbarContent justify='center' className='text-gray-200'>
                     {
-                        // 更新Navbar links
-                        links.map(item => (
+                        // 让未登陆的用户看不到navbar上的链接
+                        session && links.map(item => (
                             <NavLink href={item.href} key={item.href} label={item.label} />
                         ))
                     }

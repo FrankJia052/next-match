@@ -10,7 +10,6 @@ type Props = {
     label: string;
 }
 
-// 把未读的计数从store里拿到，渲染到Link旁边
 export default function NavLink({ href, label }: Props) {
     const pathname = usePathname();
 
@@ -24,7 +23,8 @@ export default function NavLink({ href, label }: Props) {
                 {label}
             </span>
             {
-                href === '/messages' && (
+                // 当message为0的时候，不显示0
+                href === '/messages' && unreadCount > 0 && (
                     <span
                         className='ml-1'
                     >
