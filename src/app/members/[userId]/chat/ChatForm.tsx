@@ -28,7 +28,8 @@ export default function ChatForm() {
             handleFormServerErrors(result, setError)
         } else {
             reset();
-            router.refresh();
+            // 这里因为用了PUSHER，无需刷新页面。
+            // router.refresh();
             // 这里的方法都是异步，需要确保焦点方法最后触发
             setTimeout(() => {
                 // 发消息后，不失去输入框焦点

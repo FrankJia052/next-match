@@ -11,7 +11,8 @@ export default function RegisterSuccessPage() {
     return (
         <CardWrapper
             headerText='You have successfully registered'
-            subHeaderText='You can now login to the app'
+            // 更新登陆信息，提醒email验证
+            subHeaderText='Please verify your email address before you can login'
             action={() => router.push('/lgoin')}
             actionLabel='Go to login'
             headerIcon={FaCheckCircle}

@@ -5,7 +5,8 @@ import { calculateAge, transformImageUrl } from '@/lib/util'
 import { Card, CardFooter, Image } from '@nextui-org/react'
 import { Member } from '@prisma/client'
 import Link from 'next/link'
-import React from 'react'
+import React, { useState } from 'react'
+import { toggleLikeMember } from '../actions/likeActions'
 
 type Props = {
     member: Member,
@@ -13,7 +14,21 @@ type Props = {
 }
 
 export default function MemberCard({ member, likeIds }: Props) {
-    const hasLiked = likeIds.includes(member.userId)
+    const [hasLiked, setHasLiked] = useState(likeIds.includes(member.userId));
+    const [loading, setLoading] = useState(false);
+
+    // 重点
+    async function toggleLike() {
+        try {
+            setLoading(true);
+            await toggleLikeMember(member.userId, hasLiked);
+            setHasLiked(!hasLiked)
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const preventLinkAction = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -35,9 +50,9 @@ export default function MemberCard({ member, likeIds }: Props) {
             />
             <div onClick={preventLinkAction}>
                 <div className='absolute top-3 right-3 z-50'>
-                    <LikeButton targetId={member.userId} hasLiked={hasLiked} />
+                    {/* 重点 */}
+                    <LikeButton loading={loading} toggleLike={toggleLike} hasLiked={hasLiked} />
                 </div>
-                {/* 添加用户在线状态的显示 */}
                 <div className='absolute top-2 left-3 z-50'>
                     <PresenceDot member={member}/>
                 </div>

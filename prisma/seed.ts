@@ -27,7 +27,6 @@ async function seedMembers() {
                     photos: {
                         create: {
                             url: member.image,
-                            // 把isApproved添加进seed数据
                             isApproved: true
                         }
                     }
@@ -37,7 +36,6 @@ async function seedMembers() {
     }))
 }
 
-// 创建seedAdmin
 async function seedAdmin() {
     return prisma.user.create({
         data: {
@@ -50,10 +48,12 @@ async function seedAdmin() {
     })
 }
 
-// 把seed加载进去
+// 给seed添加条件，通过环境判断，或者环境变量手动更改来决定是否加载种子数据
 async function main() {
-    await seedMembers();
-    await seedAdmin();
+    if (process.env.RUN_SEED === 'true' || process.env.NODE_ENV === 'development') {
+        await seedMembers();
+        await seedAdmin();
+    }
 }
 
 main().catch(e => {
